@@ -6,6 +6,7 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Set (Set)
 import qualified Data.Set as Set
+import System.Clock
 
 type Node = Int
 type Weight = Int
@@ -42,6 +43,12 @@ parallelDijkstra graph starts = do
 main :: IO ()
 main = do
     let graph = Map.fromList [(1, [(2, 10), (3, 5)]), (2, [(4, 1)]), (3, [(4, 2)]), (4, [])]
+    startTime <- getTime Monotonic
     -- Run Dijkstra's algorithm in parallel on multiple start nodes
     results <- parallelDijkstra graph [1, 2, 3]
+    endTime <- getTime Monotonic
+    let elapsedTime = fromIntegral (toNanoSecs (endTime - startTime)) / 1e9 :: Double
+
     mapM_ print results
+    putStrLn $ "Elapsed time: " ++ show elapsedTime ++ " seconds"
+
