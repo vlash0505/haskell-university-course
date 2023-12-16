@@ -1,3 +1,5 @@
+module Main where
+
 import Text.XML.Light
 
 data Book = Book { title :: String, author :: String } deriving (Show)
@@ -15,8 +17,8 @@ root :: Element
 root = unode "books" (map bookToXML books)
 
 -- Generate the XML content
-main :: IO ()
-main = putStrLn $ ppTopElement root
+generateXML :: String
+generateXML = ppTopElement root
 
 -- Generate the DTD content
 generateDTD :: String
@@ -27,6 +29,7 @@ generateDTD = unlines
     , "<!ELEMENT author (#PCDATA)>"
     ]
 
+-- Main function to print both XML and DTD
 main :: IO ()
 main = do
     putStrLn "XML Content:"

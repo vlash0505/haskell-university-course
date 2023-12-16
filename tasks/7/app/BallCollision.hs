@@ -1,5 +1,9 @@
+module Main where
+
 import Graphics.UI.GLUT
 import Data.IORef
+import System.IO.Unsafe (unsafePerformIO)
+import Control.Monad (when)
 
 data Ball = Ball { position :: (GLfloat, GLfloat), velocity :: (GLfloat, GLfloat), radius :: GLfloat }
 
@@ -20,24 +24,24 @@ main = do
 display :: DisplayCallback
 display = do
   clear [ColorBuffer]
-  b1 <- get ball1
-  b2 <- get ball2
-  renderBall b1
-  renderBall b2
+  ballA <- get ball1
+  ballB <- get ball2
+  renderBall ballA
+  renderBall ballB
   flush
 
 renderBall :: Ball -> IO ()
-renderBall (Ball (x, y) _ r) = preservingMatrix $ do
-  translate $ Vector3 x y 0
-  renderPrimitive Polygon $ mapM_ (\(x, y) -> vertex $ Vertex2 x y) (circlePoints r 10)
+renderBall (Ball (posX, posY) _ r) = preservingMatrix $ do
+  translate $ Vector3 posX posY 0
+  renderPrimitive Polygon $ mapM_ (\(ptX, ptY) -> vertex $ Vertex2 ptX ptY) (circlePoints r 10)
 
 circlePoints :: GLfloat -> Int -> [(GLfloat, GLfloat)]
-circlePoints r n = [ (r * cos (2 * pi * i / fromIntegral n), r * sin (2 * pi * i / fromIntegral n)) | i <- [0..n] ]
+circlePoints r n = [ (r * cos (2 * pi * fromIntegral i / fromIntegral n), r * sin (2 * pi * fromIntegral i / fromIntegral n)) | i <- [0..n] ]
 
 update :: IdleCallback
 update = do
-  modifyIORef ball1 (moveBall)
-  modifyIORef ball2 (moveBall)
+  modifyIORef ball1 moveBall
+  modifyIORef ball2 moveBall
   checkCollision ball1 ball2
   postRedisplay Nothing
 
@@ -47,17 +51,17 @@ moveBall (Ball (x, y) (vx, vy) r) = Ball (x + vx, y + vy) (vx, vy) r
 -- Check and Handle Collision
 checkCollision :: IORef Ball -> IORef Ball -> IO ()
 checkCollision ballRef1 ballRef2 = do
-  ball1 <- get ballRef1
-  ball2 <- get ballRef2
-  let Ball (x1, y1) _ r1 = ball1
-      Ball (x2, y2) _ r2 = ball2
+  ballA <- get ballRef1
+  ballB <- get ballRef2
+  let Ball (x1, y1) _ r1 = ballA
+      Ball (x2, y2) _ r2 = ballB
       dx = x1 - x2
       dy = y1 - y2
       dist = sqrt(dx*dx + dy*dy)
   when (dist < r1 + r2) $ do
     -- Adjust velocities for a simple elastic collision
-    let Ball _ (vx1, vy1) _ = ball1
-        Ball _ (vx2, vy2) _ = ball2
+    let Ball _ (vx1, vy1) _ = ballA
+        Ball _ (vx2, vy2) _ = ballB
         newVx1 = vx2
         newVy1 = vy2
         newVx2 = vx1

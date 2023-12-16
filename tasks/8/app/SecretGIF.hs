@@ -1,3 +1,5 @@
+module Main where
+
 import Graphics.GD
 import Data.Bits
 import Data.Char (ord)

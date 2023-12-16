@@ -1,6 +1,33 @@
-import System.Random (randomRIO)
-import Data.List (permutations, nub)
-import Control.Monad (forM_)
+module Main where
+
+import System.Random (randomRIO, newStdGen, randoms)
+import Data.List (nub, maximumBy)
+import Data.Ord (comparing)
+import Control.Monad (forM_, foldM, replicateM)
+
+
+type City = (Int, Float, Float) -- (City ID, X-coordinate, Y-coordinate)
+type Tour = [City]
+
+fitness :: Tour -> Float
+fitness tour = 1 / tourDistance tour
+
+tourDistance :: Tour -> Float
+tourDistance tour = sum $ zipWith distance tour (tail tour ++ [head tour])
+
+distance :: City -> City -> Float
+distance (_, x1, y1) (_, x2, y2) = sqrt ((x2 - x1) ^ 2 + (y2 - y1) ^ 2)
+
+mutate :: Tour -> IO Tour
+mutate tour = do
+    index1 <- randomRIO (0, length tour - 1)
+    index2 <- randomRIO (0, length tour - 1)
+    return $ swap index1 index2 tour
+
+geneticAlgorithm :: [City] -> Int -> Int -> IO [Tour]
+geneticAlgorithm cities populationSize generations = do
+    initialPopulation <- initializePopulation populationSize cities
+    foldM (\pop _ -> nextGeneration pop) initialPopulation [1..generations]
 
 cities :: [City]
 cities = [(1, 0, 0), (2, 1, 0), (3, 1, 1), (4, 0, 1)]
