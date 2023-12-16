@@ -40,7 +40,7 @@ hideInformation inputImagePath secretMessage outputImagePath = do
     let binaryMessage = toBinary secretMessage
     modifiedImage <- hideInformationInImage image binaryMessage
     saveGifFile outputImagePath modifiedImage
-˚
+
 main :: IO ()
 main = do
     let inputImagePath = "input.gif"
